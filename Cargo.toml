@@ -1,0 +1,8 @@
+[package]
+name = "pair_sweeper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rayon = "1.7"
+dashmap = { version = "5", features = ["rayon"]}
