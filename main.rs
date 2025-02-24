@@ -15,7 +15,7 @@ fn main() -> io::Result<()> {
 
     let total_count: usize;
     let maximum_distance: f64 = 0.05;
-    let maximum_distance_sq: f64 = maximum_distance.powf(2.0);
+    let maximum_distance_sq: f64 = maximum_distance.powi(2);
     
     let grid_map: DashMap<Cell,Vec<Point>> = 
         DashMap::with_capacity_and_shard_amount(100_000,512); //roughly hand adjusted for positions_large.xyz
@@ -29,7 +29,6 @@ fn main() -> io::Result<()> {
         count_pairs(entry.key(), &grid_map, maximum_distance_sq)
         }).sum();   
     
-
     println!("number of pairs: {}", total_count); //expected result: 1436965 for positions_large.xyz
     Ok(())
 }
@@ -67,7 +66,6 @@ fn count_pairs(
     maximum_distance_sq: f64) -> usize {
 
     let mut pair_count: usize = 0;
-
     let domestic_points: &Vec<Point> = &grid_map.get(cell).unwrap();    
 
     let shard_key = ((cell.0 & 1) | ((cell.1 & 1) << 1) | ((cell.2 & 1) << 2)) as u8;
@@ -79,9 +77,7 @@ fn count_pairs(
             if let Some(sur_points) = grid_map.get(&sur_cell)  {
                 for &sur_p in sur_points.iter() {
                     for &dom_p in domestic_points.iter() {
-                        if close_enough(sur_p, dom_p, maximum_distance_sq) {
-                            pair_count += 1;
-                        }
+                        pair_count +=  close_enough(sur_p, dom_p, maximum_distance_sq);
                     }
                 }
             }
@@ -92,9 +88,7 @@ fn count_pairs(
     
     for i in 0..amount_dom_p-1 {
         for j in i+1..amount_dom_p {
-            if close_enough(domestic_points[i], domestic_points[j], maximum_distance_sq) {
-                pair_count += 1;
-            }
+            pair_count += close_enough(domestic_points[i], domestic_points[j], maximum_distance_sq);
         }
     }
     
@@ -102,10 +96,10 @@ fn count_pairs(
 }
 
 
-fn close_enough(p1: Point, p2: Point, maximum_distance_sq: f64) -> bool {    
-    (p1.0-p2.0).powf(2.0)+
-    (p1.1-p2.1).powf(2.0)+
-    (p1.2-p2.2).powf(2.0) < maximum_distance_sq
+fn close_enough(p1: Point, p2: Point, maximum_distance_sq: f64) -> usize {   
+    ((p1.0-p2.0).powi(2)+
+    (p1.1-p2.1).powi(2)+
+    (p1.2-p2.2).powi(2) < maximum_distance_sq) as usize
 }
 
 
@@ -178,7 +172,7 @@ fn get_surrounding_cells(center: &Cell, shard_key: u8) -> Vec<Cell> {
             (x-1,y-1,z  ),(x  ,y-1,z  ),(x+1,y-1,z  ),
 
         ],
-        _ => vec![ 
+        _ => vec![ // shard_key = 6
 
             (x-1,y  ,z  )             ,(x+1,y  ,z  )
 
